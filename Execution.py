@@ -27,9 +27,58 @@ def split_dataset(all_data):
     # defining a random state as 32 since not mentioned in question, this will shuffle the data well
     test_data = all_data.sample(frac=0.2, random_state=32)
     train_data = all_data.drop(test_data.index)
+    """ 
     # Need to perform 5 Fold on this.
 
+    trainData5Fold = []
+    size = len(train_data)//5
+    for i in range(5):
+        trainData5Fold.append(train_data.iloc[size*i:size*(i+1)])
+    
+    p = Perceptron()
+    lr = Logistic()
+
+    learning_rate = [0.01, 0.025, 0.05, 0.075, 0.1, 0.2]
+    max_iter = [50, 100, 150, 300, 500, 1000]
+
+    for j in range(6):
+        for k in range(6):
+            sigmaPerceptron = 0
+            sigmaLogistic = 0
+            for i in range(5):   
+                test_data = trainData5Fold[i]
+                newTrainData = train_data.drop(test_data.index)
+                p.train(newTrainData, learning_rate=learning_rate[j], max_iter = max_iter[k])
+                predicted_lables = p.predict(test_data)
+                acc = accuracyKFold(predicted_lables, test_data["Label"].to_list())
+                sigmaPerceptron += acc
+
+                lr.train(newTrainData, learning_rate=learning_rate[j], max_epochs= max_iter[k])
+                predicted_lables = lr.predict(test_data)
+                acc = accuracyKFold(predicted_lables, test_data["Label"].to_list())
+                sigmaLogistic += acc
+                # print(acc)
+            avgPerceptron = sigmaPerceptron/5
+            avgLogistic = sigmaLogistic/5
+            print('Average Accuracy for learning rate = %s, max_iter = %s is Perceptron: %s, Logistic: %s'%(learning_rate[j], max_iter[k], avgPerceptron, avgLogistic))
+    import pdb; pdb.set_trace() 
+    """
+
     return train_data, test_data
+
+
+def accuracyKFold(orig, pred):
+    num = len(orig)
+    if (num != len(pred)):
+        print('Error!! Num of labels are not equal.')
+        return
+    match = 0
+    for i in range(len(orig)):
+        o_label = orig[i]
+        p_label = pred[i]
+        if (o_label == p_label):
+            match += 1
+    return (float(match) / num)
 
 """
 This function should not be changed at all.

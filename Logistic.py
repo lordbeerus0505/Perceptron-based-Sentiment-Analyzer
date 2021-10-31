@@ -81,10 +81,7 @@ class Logistic():
             self.word_freq = dict(sorted(self.word_freq.items(), key=lambda item: item[1], reverse=True))
             # the middle ground
             self.word_freq = {key: value for key, value in self.word_freq.items() if value <1800 and value >110}
-            
-            # dict_items = self.word_freq.items()
-            # self.word_freq = list(dict_items)[500:1500]
-            # import pdb; pdb.set_trace()
+
 
         for sentence in sentences:
             feature_vector = []
@@ -92,7 +89,6 @@ class Logistic():
                 # import pdb; pdb.set_trace()
                 feature_vector.append(sentence.count(word))
             outputVector.append(feature_vector)
-        # print(len(outputVector))
         return outputVector
          
     def unique(self, sentences):
@@ -137,24 +133,7 @@ class Logistic():
     def logistic_loss(self, predicted_label, true_label, data_point):
         """
         Optional helper method to code the logistic function.
-        """
-
-        """ global count
-        if predicted_label != true_label:
-            count+=1
-            if (count%100 == 0):
-                print("updating weights, count =", count)
-            self.weights += self.learning_rate*true_label*data_point
-        return """
-
-        # y = np.array(true_label)
-        # h_x = np.array(predicted_label)
-        # h_x = np.where(h_x==0, 0.00001, 0.99999)
-        # log_h_x = np.log2(h_x)
-        # log_1_h_x = np.log2(1-h_x)
-        # loss = -y*log_h_x - (1-y)*log_1_h_x
-        # cost = 1. / self.sample_size * loss
-        
+        """        
         errors = (true_label - predicted_label)
 
         prod = np.dot(errors, data_point) + self.weights*0.01/self.sample_size
@@ -168,7 +147,6 @@ class Logistic():
         """
 
     def sigmoid(self, z):  
-        # print(z) 
         if z>100:
             return 1
         if z<-100:
@@ -209,7 +187,6 @@ class Logistic():
         
         features = np.array(self.feature_extraction(labeled_data), dtype='float64')
         labels = np.array(labeled_data['Label'].to_list(), dtype='float64')
-        # labels = np.where(labels<1,-1,labels)
         # Need to add the bias term as well! one more term
         bias = [[1] for x in range(len(features))]
         features = np.append(features, bias, axis=1)
@@ -224,7 +201,11 @@ class Logistic():
             self.learning_rate = learning_rate
         """
 
-
+        if max_epochs != None:
+            self.num_epochs = max_epochs
+        
+        if learning_rate != None:
+            self.learning_rate = learning_rate
 
 
          # import pdb; pdb.set_trace()
@@ -256,8 +237,8 @@ class Logistic():
             # Using L2 norm to determine if above or below a threshold
             if norm(results) < 10**-6:
                 # import pdb; pdb.set_trace()
-                print("Stopped early at epoch: ", _)
-                print("Norm is:", norm(results))
+                # print("Stopped early at epoch: ", _)
+                # print("Norm is:", norm(results))
                 break
 
         return
