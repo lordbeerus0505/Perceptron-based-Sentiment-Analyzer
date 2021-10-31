@@ -53,7 +53,7 @@ class Logistic():
         """
         self.weights = None
         self.bias = None
-        self.learning_rate = 0.1
+        self.learning_rate = 0.01
         self.num_epochs = 1000
         self.word_freq = None
         self.sample_size = 0
@@ -167,12 +167,13 @@ class Logistic():
         Optional helper method to compute a gradient update for a single point.
         """
 
-    def sigmoid(self, z):   
+    def sigmoid(self, z):  
+        # print(z) 
         if z>100:
             return 1
         if z<-100:
             return 0
-        return 1 / (1 + np.exp(-z))  
+        return (1 / (1 + np.exp(-z)) )[0]
 
     def update_weights(self, new_weights):
         """
@@ -247,26 +248,17 @@ class Logistic():
             for i in range(len(features)):
                 # self.stochastic_gradient_descent(features[i], labels[i])
                 delta_w = np.zeros(len(features[i]))
-                # predicted_label = self.sgn_function(data)
-                # import pdb; pdb.set_trace()
                 predicted_label = self.sgn_function(self.sigmoid(np.dot(self.weights,features[i])))
-                # print(predicted_label)
-                # import pdb; pdb.set_trace()
                 delta_w = self.logistic_loss(predicted_label, labels[i], features[i])
                 # import pdb; pdb.set_trace()
                 results.append(delta_w)
                 self.weights += delta_w
             # Using L2 norm to determine if above or below a threshold
-            if norm(results) < 10**-4:
+            if norm(results) < 10**-6:
                 # import pdb; pdb.set_trace()
                 print("Stopped early at epoch: ", _)
+                print("Norm is:", norm(results))
                 break
-        # predicted_labels = []
-        # for i in range(len(features)):
-        #     prediction = self.sgn_function(self.sigmoid(np.dot(self.weights,features[i])))
-        #     predicted_labels.append(prediction)
-
-        # import pdb; pdb.set_trace()
 
         return
 
@@ -288,10 +280,6 @@ class Logistic():
         features = np.array(self.feature_extraction(data), dtype='float64')
         bias = [[1] for x in range(len(features))]
         features = np.append(features, bias, axis=1)
-        # labels = data_point['Label'].to_list()
-
-        # import pdb; pdb.set_trace()
-
         
         for i in range(len(features)):
             prediction = self.sgn_function(self.sigmoid(np.dot(self.weights,features[i])))

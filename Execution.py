@@ -75,21 +75,21 @@ if __name__ == '__main__':
     perceptron = Perceptron()
     logistic = Logistic()
 
-    perceptron.train(train_data)
+    # perceptron.train(train_data)
     logistic.train(train_data)
 
-    predicted_train_labels_perceptron = perceptron.predict(train_data)
-    predicted_test_labels_perceptron = perceptron.predict(test_data)
-    predicted_test_labels_unseen_perceptron = perceptron.predict(test_data_unseen)
+    # predicted_train_labels_perceptron = perceptron.predict(train_data)
+    # predicted_test_labels_perceptron = perceptron.predict(test_data)
+    # predicted_test_labels_unseen_perceptron = perceptron.predict(test_data_unseen)
 
     predicted_train_labels_logistic = logistic.predict(train_data)
     predicted_test_labels_logistic = logistic.predict(test_data)
     predicted_test_labels_unseen_logistic = logistic.predict(test_data_unseen)
 
-    print('\n\n-------------Perceptron Performance-------------\n')
-    # This command also runs the evaluation on the unseen test set
-    eval(train_data['Label'].tolist(), predicted_train_labels_perceptron, test_data['Label'].tolist(),
-         predicted_test_labels_perceptron, test_data_unseen['Label'].tolist(), predicted_test_labels_unseen_perceptron)
+    # print('\n\n-------------Perceptron Performance-------------\n')
+    # # This command also runs the evaluation on the unseen test set
+    # eval(train_data['Label'].tolist(), predicted_train_labels_perceptron, test_data['Label'].tolist(),
+    #      predicted_test_labels_perceptron, test_data_unseen['Label'].tolist(), predicted_test_labels_unseen_perceptron)
 
     print('\n\n-------------Logistic Function Performance-------------\n')
     # This command also runs the evaluation on the unseen test
