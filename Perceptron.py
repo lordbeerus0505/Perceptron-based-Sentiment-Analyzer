@@ -58,7 +58,7 @@ class Perceptron():
         self.word_freq = None
         self.sample_size = 0
 
-    def create_feature_vector(self, sentences, unique_words):
+    def create_feature_vector(self, sentences):
         """ 
             Creates a feature vector for every input using frequency of words.
         """
@@ -67,11 +67,14 @@ class Perceptron():
         if self.word_freq == None:
             self.word_freq = {}
             for sentence in sentences:
+
+                # tokens = word_tokenize(sentence)
                 for token in sentence:
                     if token not in self.word_freq.keys():
                         self.word_freq[token] = 1
                     else:
                         self.word_freq[token] += 1
+
             # sort by frequency, we only want the top 1000 features
             # but the topmost features are pretty much just stop words, 
             # we only want ones that add to context hence skimming them out.
@@ -85,26 +88,18 @@ class Perceptron():
                 # import pdb; pdb.set_trace()
                 feature_vector.append(sentence.count(word))
             outputVector.append(feature_vector)
-        # print(len(outputVector))
         return outputVector
          
-    def unique(self, sentences):
+    def unique_words(self, sentences):
         import re
-        # Using a set as it makes sure the words remain unique
-        words = set()
-        stopCharacters=[",",":","-","_",";",".","?","[","]", "(", ")"]
-        outputList = []
-        cleaned_sentences = []
+        tokenized_sentences = []
         tokenizer = RegexpTokenizer(r'\w+')
         for inputSentence in sentences:
+
             inputSentence = tokenizer.tokenize(inputSentence)
-            # inputSentence = re.split('; |, |\*|\n|\-| |\[|\]|\(|\)|\{|\}|\"|\'|\/|',inputSentence)
-            for x in inputSentence:
-                if not(x in words) and not(x in stopCharacters):
-                    words.add(x)
-                    outputList.append(x)
-            cleaned_sentences.append(inputSentence)
-        return outputList, cleaned_sentences
+            tokenized_sentences.append(inputSentence)
+
+        return tokenized_sentences
 
     def feature_extraction(self, data):
         """
@@ -113,8 +108,8 @@ class Perceptron():
         """
         
         sentences = data['Text'].to_list()
-        unique_list, sentences = self.unique(sentences)
-        features = self.create_feature_vector(sentences, unique_list)
+        sentences = self.unique_words(sentences)
+        features = self.create_feature_vector(sentences)
         return features
 
     def sgn_function(self, perceptron_input):

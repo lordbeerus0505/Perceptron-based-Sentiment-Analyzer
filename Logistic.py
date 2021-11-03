@@ -58,7 +58,7 @@ class Logistic():
         self.word_freq = None
         self.sample_size = 0
 
-    def create_feature_vector(self, sentences, unique_words):
+    def create_feature_vector(self, sentences):
         """ 
             Creates a feature vector for every input using frequency of words.
         """
@@ -90,25 +90,16 @@ class Logistic():
             outputVector.append(feature_vector)
         return outputVector
          
-    def unique(self, sentences):
+    def unique_words(self, sentences):
         import re
-        # Using a set as it makes sure the words remain unique
-        words = set()
-        stopCharacters=[",",":","-","_",";",".","?","[","]", "(", ")"]
-        outputList = []
-        cleaned_sentences = []
+        tokenized_sentences = []
         tokenizer = RegexpTokenizer(r'\w+')
         for inputSentence in sentences:
 
             inputSentence = tokenizer.tokenize(inputSentence)
-            # inputSentence = re.split('; |, |\*|\n|\-| |\[|\]|\(|\)|\{|\}|\"|\'|\/|',inputSentence)
-            for x in inputSentence:
-                if not(x in words) and not(x in stopCharacters):
-                    words.add(x)
-                    outputList.append(x)
-            cleaned_sentences.append(inputSentence)
+            tokenized_sentences.append(inputSentence)
 
-        return outputList, cleaned_sentences
+        return tokenized_sentences
 
     def feature_extraction(self, data):
         """
@@ -117,8 +108,8 @@ class Logistic():
         """
         
         sentences = data['Text'].to_list()
-        unique_list, sentences = self.unique(sentences)
-        features = self.create_feature_vector(sentences, unique_list)
+        sentences = self.unique_words(sentences)
+        features = self.create_feature_vector(sentences)
         return features
 
     def sgn_function(self, perceptron_input):
