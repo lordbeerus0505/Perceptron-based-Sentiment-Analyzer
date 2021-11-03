@@ -53,12 +53,12 @@ class Logistic():
         """
         self.weights = None
         self.bias = None
-        self.learning_rate = 0.01
-        self.num_epochs = 1000
+        self.learning_rate = 0.05
+        self.num_epochs = 300
         self.word_freq = None
         self.sample_size = 0
 
-    def vectorize(self, sentences, unique_words):
+    def create_feature_vector(self, sentences, unique_words):
         """ 
             Creates a feature vector for every input using frequency of words.
         """
@@ -67,21 +67,20 @@ class Logistic():
         if self.word_freq == None:
             self.word_freq = {}
             for sentence in sentences:
-                # import pdb; pdb.set_trace()
+
                 # tokens = word_tokenize(sentence)
                 for token in sentence:
                     if token not in self.word_freq.keys():
                         self.word_freq[token] = 1
                     else:
                         self.word_freq[token] += 1
-            # import pdb; pdb.set_trace()
+
             # sort by frequency, we only want the top 1000 features
             # but the topmost features are pretty much just stop words, 
             # we only want ones that add to context hence skimming them out.
             self.word_freq = dict(sorted(self.word_freq.items(), key=lambda item: item[1], reverse=True))
             # the middle ground
             self.word_freq = {key: value for key, value in self.word_freq.items() if value <1800 and value >110}
-
 
         for sentence in sentences:
             feature_vector = []
@@ -100,7 +99,7 @@ class Logistic():
         cleaned_sentences = []
         tokenizer = RegexpTokenizer(r'\w+')
         for inputSentence in sentences:
-            # import pdb; pdb.set_trace()
+
             inputSentence = tokenizer.tokenize(inputSentence)
             # inputSentence = re.split('; |, |\*|\n|\-| |\[|\]|\(|\)|\{|\}|\"|\'|\/|',inputSentence)
             for x in inputSentence:
@@ -108,7 +107,7 @@ class Logistic():
                     words.add(x)
                     outputList.append(x)
             cleaned_sentences.append(inputSentence)
-        # import pdb; pdb.set_trace()
+
         return outputList, cleaned_sentences
 
     def feature_extraction(self, data):
@@ -119,7 +118,7 @@ class Logistic():
         
         sentences = data['Text'].to_list()
         unique_list, sentences = self.unique(sentences)
-        features = self.vectorize(sentences, unique_list)
+        features = self.create_feature_vector(sentences, unique_list)
         return features
 
     def sgn_function(self, perceptron_input):
@@ -133,11 +132,13 @@ class Logistic():
     def logistic_loss(self, predicted_label, true_label, data_point):
         """
         Optional helper method to code the logistic function.
-        """        
-        errors = (true_label - predicted_label)
+        """     
+        errors = (predicted_label - true_label)
 
-        prod = np.dot(errors, data_point) + self.weights*0.01/self.sample_size
-        delta_w = (self.learning_rate * prod)
+        prod = (np.dot(data_point, errors.T) + self.weights*0.01)
+        # Since stochastic, we want smaller changes, so dividing by number of samples 
+        # so the overall effect is the same as GD
+        delta_w = (self.learning_rate * prod)/self.sample_size
         return delta_w
 
 
@@ -147,11 +148,7 @@ class Logistic():
         """
 
     def sigmoid(self, z):  
-        if z>100:
-            return 1
-        if z<-100:
-            return 0
-        return (1 / (1 + np.exp(-z)) )[0]
+        return (1.0 / (1.0 + np.exp(-z)) )
 
     def update_weights(self, new_weights):
         """
@@ -184,63 +181,37 @@ class Logistic():
         The goal of this function is to train the logistic function on the labeled data. Feel free to code this
         however you want.
         """
-        
-        features = np.array(self.feature_extraction(labeled_data), dtype='float64')
-        labels = np.array(labeled_data['Label'].to_list(), dtype='float64')
-        # Need to add the bias term as well! one more term
-        bias = [[1] for x in range(len(features))]
-        features = np.append(features, bias, axis=1)
-        # self.weights = [0.0 for x in range(len(features[0]+1))]
-        self.weights = np.random.rand(1,len(features[0]+1))
-        # self.weights = np.array(self.weights)
-        self.sample_size = len(features)
-
-        """ 
-            NEED TO MAKE SUCH CHANGES
-            self.num_epochs = max_epochs
-            self.learning_rate = learning_rate
-        """
-
         if max_epochs != None:
             self.num_epochs = max_epochs
         
         if learning_rate != None:
             self.learning_rate = learning_rate
-
-
-         # import pdb; pdb.set_trace()
-        """ 
-        #######################################################
-        features = np.array([[0,0,0,0], [0,0,0,1], [0,0,1,0], [0,0,1,1], [0,1,0,0], [0,1,0,1],
-        [0,1,1,0], [0,1,1,1], [1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1], [1,1,0,0],
-        [1,1,0,1], [1,1,1,0], [1,1,1,1]],dtype='float64')
+        
+        features = np.array(self.feature_extraction(labeled_data), dtype='float64')
+        labels = np.array(labeled_data['Label'].to_list(), dtype='float64')
+        # Appending bias term directly to feature space, saves using a separate variable
         bias = [[1] for x in range(len(features))]
-        # import pdb; pdb.set_trace()
         features = np.append(features, bias, axis=1)
-        # if b,d true
-        labels = [0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1]
-        labels = pd.Series( (v for v in labels) ) 
-        self.weights = np.random.rand(1,len(features[0]+1))[0]
-        # self.weights = np.array(self.weights)
-        ####################################################### 
-        """
+
+        # self.weights = np.random.rand((features.shape[1]))
+        self.weights = np.zeros((features.shape[1]))
+        self.sample_size = len(features)
+
         for _ in range(self.num_epochs):
+            delta_w = 0
+            # delta_b = 0
             results = []
             for i in range(len(features)):
-                # self.stochastic_gradient_descent(features[i], labels[i])
-                delta_w = np.zeros(len(features[i]))
-                predicted_label = self.sgn_function(self.sigmoid(np.dot(self.weights,features[i])))
+                predicted_label = self.sigmoid(np.dot(self.weights.T, features[i]))
+                # Adding regularization term
                 delta_w = self.logistic_loss(predicted_label, labels[i], features[i])
-                # import pdb; pdb.set_trace()
+                self.update_weights(self.weights - delta_w)
                 results.append(delta_w)
-                self.weights += delta_w
-            # Using L2 norm to determine if above or below a threshold
-            if norm(results) < 10**-6:
-                # import pdb; pdb.set_trace()
-                # print("Stopped early at epoch: ", _)
-                # print("Norm is:", norm(results))
+            # Using L2 norm to determine if above or below a threshold for early stopping
+            if norm(results) < 10**-3:
+                print("Stopped early at epoch: ", _)
+                print("Norm is:", norm(results))
                 break
-
         return
 
     def predict(self, data):
@@ -263,9 +234,8 @@ class Logistic():
         features = np.append(features, bias, axis=1)
         
         for i in range(len(features)):
-            prediction = self.sgn_function(self.sigmoid(np.dot(self.weights,features[i])))
+            prediction = self.sgn_function(self.sigmoid(np.dot(self.weights.T,features[i])))
             predicted_labels.append(prediction)
-        # for i in range(len(features)):
-        #     predicted_labels.append(self.sgn_function(features[i]))
-        # import pdb; pdb.set_trace()
+
         return predicted_labels
+

@@ -53,12 +53,12 @@ class Perceptron():
         """
         self.weights = None
         self.bias = None
-        self.learning_rate = 0.1
-        self.num_epochs = 1000
+        self.learning_rate = 0.2
+        self.num_epochs = 200
         self.word_freq = None
         self.sample_size = 0
 
-    def vectorize(self, sentences, unique_words):
+    def create_feature_vector(self, sentences, unique_words):
         """ 
             Creates a feature vector for every input using frequency of words.
         """
@@ -114,7 +114,7 @@ class Perceptron():
         
         sentences = data['Text'].to_list()
         unique_list, sentences = self.unique(sentences)
-        features = self.vectorize(sentences, unique_list)
+        features = self.create_feature_vector(sentences, unique_list)
         return features
 
     def sgn_function(self, perceptron_input):
@@ -158,10 +158,11 @@ class Perceptron():
         want.
         """
 
-        ####################### NEEDS TO BE CHANGED ##################
-        max_iter = 500
-        learning_rate = 0.01
-        ##############################################################
+        if max_iter != None:
+            self.num_epochs = max_iter
+        
+        if learning_rate != None:
+            self.learning_rate = learning_rate
 
         features = np.array(self.feature_extraction(labeled_data), dtype='float64')
         labels = np.array(labeled_data['Label'].to_list(), dtype='float64')
@@ -169,15 +170,26 @@ class Perceptron():
         # Need to add the bias term as well! one more term
         bias = [[1] for x in range(len(features))]
         features = np.append(features, bias, axis=1)
-        self.weights = np.random.rand(1,len(features[0]+1))
+        self.weights = np.zeros((features.shape[1]))
         self.sample_size = len(features)
+        # Using the margin concept to prevent overfitting. Setting Gamma to 0.1
+        gamma = 0.1
 
-        for _ in range(max_iter):
+        for _ in range(self.num_epochs):
             for i in range(len(features)):
-                # import pdb; pdb.set_trace()
-                y_prime = self.sgn_function(np.dot(self.weights, features[i]))
-                if labels[i] != y_prime:
-                    self.update_weights(self.weights + learning_rate*labels[i]*features[i])
+                # Since labels[i] can never be 0, setting to this forces an update if neither work.
+                # i.e. when we come across a mistake
+                y_prime = 0
+                
+                # Using gamma only during training to have a thicker separator.
+                if np.dot(self.weights, features[i]) > gamma:
+                    y_prime = 1
+                elif np.dot(self.weights, features[i]) < -gamma:
+                    y_prime = -1
+
+                if y_prime != labels[i]:
+                    self.update_weights((self.weights + self.learning_rate*labels[i]*features[i]))
+
                 # Note, no regularization, L2 norm used to stop early here as not stated 
                 # in the question to optimize this
 
