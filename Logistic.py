@@ -53,7 +53,7 @@ class Logistic():
         """
         self.weights = None
         self.bias = None
-        self.learning_rate = 0.05
+        self.learning_rate = 0.1
         self.num_epochs = 300
         self.word_freq = None
         self.sample_size = 0
@@ -63,7 +63,6 @@ class Logistic():
             Creates a feature vector for every input using frequency of words.
         """
         outputVector=[]
-
         if self.word_freq == None:
             self.word_freq = {}
             for sentence in sentences:
@@ -79,9 +78,9 @@ class Logistic():
             # but the topmost features are pretty much just stop words, 
             # we only want ones that add to context hence skimming them out.
             self.word_freq = dict(sorted(self.word_freq.items(), key=lambda item: item[1], reverse=True))
-            # the middle ground
-            self.word_freq = {key: value for key, value in self.word_freq.items() if value <1800 and value >110}
-
+            # the middle ground is heuristically determined 
+            self.word_freq = {key: value for key, value in self.word_freq.items() if value <1800 and value >90}
+        
         for sentence in sentences:
             feature_vector = []
             for word in self.word_freq:
@@ -92,12 +91,18 @@ class Logistic():
          
     def unique_words(self, sentences):
         import re
+        lemmatizer = stem.WordNetLemmatizer()
         tokenized_sentences = []
         tokenizer = RegexpTokenizer(r'\w+')
         for inputSentence in sentences:
 
             inputSentence = tokenizer.tokenize(inputSentence)
-            tokenized_sentences.append(inputSentence)
+            
+            lemmatizedSentence = []
+            for word in inputSentence:
+                lemmatizedSentence.append(lemmatizer.lemmatize(word))
+            tokenized_sentences.append(lemmatizedSentence)
+            # import pdb; pdb.set_trace()
 
         return tokenized_sentences
 
@@ -126,7 +131,9 @@ class Logistic():
         """     
         errors = (predicted_label - true_label)
 
-        prod = (np.dot(data_point, errors.T) + self.weights*0.01)
+        prod = (np.dot(data_point, errors.T) + self.weights*0.015)
+        # adding regularization though not asked as it helps reduce overfitting on train set 
+
         # Since stochastic, we want smaller changes, so dividing by number of samples 
         # so the overall effect is the same as GD
         delta_w = (self.learning_rate * prod)/self.sample_size

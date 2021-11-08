@@ -53,8 +53,8 @@ class Perceptron():
         """
         self.weights = None
         self.bias = None
-        self.learning_rate = 0.2
-        self.num_epochs = 200
+        self.learning_rate = 0.30
+        self.num_iterations = 1500
         self.word_freq = None
         self.sample_size = 0
 
@@ -80,7 +80,7 @@ class Perceptron():
             # we only want ones that add to context hence skimming them out.
             self.word_freq = dict(sorted(self.word_freq.items(), key=lambda item: item[1], reverse=True))
             # the middle ground
-            self.word_freq = {key: value for key, value in self.word_freq.items() if value <1800 and value >110}
+            self.word_freq = {key: value for key, value in self.word_freq.items() if value <1800 and value >90}
 
         for sentence in sentences:
             feature_vector = []
@@ -92,12 +92,18 @@ class Perceptron():
          
     def unique_words(self, sentences):
         import re
+        lemmatizer = stem.WordNetLemmatizer()
         tokenized_sentences = []
         tokenizer = RegexpTokenizer(r'\w+')
         for inputSentence in sentences:
 
             inputSentence = tokenizer.tokenize(inputSentence)
-            tokenized_sentences.append(inputSentence)
+            
+            lemmatizedSentence = []
+            for word in inputSentence:
+                lemmatizedSentence.append(lemmatizer.lemmatize(word))
+            tokenized_sentences.append(lemmatizedSentence)
+            # import pdb; pdb.set_trace()
 
         return tokenized_sentences
 
@@ -154,7 +160,7 @@ class Perceptron():
         """
 
         if max_iter != None:
-            self.num_epochs = max_iter
+            self.num_iterations = max_iter
         
         if learning_rate != None:
             self.learning_rate = learning_rate
@@ -170,20 +176,22 @@ class Perceptron():
         # Using the margin concept to prevent overfitting. Setting Gamma to 0.1
         gamma = 0.1
 
-        for _ in range(self.num_epochs):
-            for i in range(len(features)):
-                # Since labels[i] can never be 0, setting to this forces an update if neither work.
-                # i.e. when we come across a mistake
-                y_prime = 0
-                
-                # Using gamma only during training to have a thicker separator.
-                if np.dot(self.weights, features[i]) > gamma:
-                    y_prime = 1
-                elif np.dot(self.weights, features[i]) < -gamma:
-                    y_prime = -1
+        #######################################################################
+        # check whether we should use num num_epochs or only number of examples for a single epoch
+        for i in range(min(self.num_iterations, len(features))):
+            # for i in range(len(features)):
+            # Since labels[i] can never be 0, setting to this forces an update if neither work.
+            # i.e. when we come across a mistake
+            y_prime = 0
+            
+            # Using gamma only during training to have a thicker separator.
+            if np.dot(self.weights, features[i]) > gamma:
+                y_prime = 1
+            elif np.dot(self.weights, features[i]) < -gamma:
+                y_prime = -1
 
-                if y_prime != labels[i]:
-                    self.update_weights((self.weights + self.learning_rate*labels[i]*features[i]))
+            if y_prime != labels[i]:
+                self.update_weights((self.weights + self.learning_rate*labels[i]*features[i]))
 
                 # Note, no regularization, L2 norm used to stop early here as not stated 
                 # in the question to optimize this
