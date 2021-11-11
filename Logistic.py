@@ -53,8 +53,8 @@ class Logistic():
         """
         self.weights = None
         self.bias = None
-        self.learning_rate = 0.1
-        self.num_epochs = 300
+        self.learning_rate = 0.20
+        self.num_epochs = 800
         self.word_freq = None
         self.sample_size = 0
 

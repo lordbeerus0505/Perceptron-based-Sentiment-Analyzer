@@ -53,8 +53,8 @@ class Perceptron():
         """
         self.weights = None
         self.bias = None
-        self.learning_rate = 0.30
-        self.num_iterations = 1500
+        self.learning_rate = 0.20
+        self.num_iterations = 1360
         self.word_freq = None
         self.sample_size = 0
 
@@ -177,7 +177,7 @@ class Perceptron():
         gamma = 0.1
 
         #######################################################################
-        # check whether we should use num num_epochs or only number of examples for a single epoch
+        # using only number of examples as hyp for a single epoch
         for i in range(min(self.num_iterations, len(features))):
             # for i in range(len(features)):
             # Since labels[i] can never be 0, setting to this forces an update if neither work.
